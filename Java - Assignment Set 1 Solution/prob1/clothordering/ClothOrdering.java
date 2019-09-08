@@ -1,4 +1,4 @@
-package prob1.clothmatching;
+package prob1.clothordering;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,16 +12,14 @@ import java.util.concurrent.Semaphore;
 * Cloth ordering machine
 * There is a heap of new labelled clothes. Each cloth is among one of four items: Small Tshirt, Medium Tshirt,
 Large Tshirt and Cap. There are several robots deployed to process the orders, one order per robot at a time and
-pass it to a matching machine. The matching machine forwards the order to a order manager robot.
-The order manager robot then completes the request and updates number of clothes.
+pass it to a order manager robot. The order manager robot then completes the request and updates number of clothes.
 **/
-public class ClothMatching {
+public class ClothOrdering {
     private int NumberOfRobots; // Number of robot arms
     private final List<Integer> Cloths;  // Cloths buffer
     private final List<Integer> Num;  // Num buffer
     private final List<Integer> OrderID;  // OrderID buffer
     private List<Robot> Robots; // List of Robot Threads
-    private MatchingMachine matchingMachine;
     private OrderManager orderManager;  // Order manager
     private List<Semaphore> SemLocks;   // Semaphore locks for the clothes
     private Random rand = new Random(); // random generator
@@ -65,7 +63,7 @@ public class ClothMatching {
     private void createRobotArms() {
         Robots = new ArrayList<>();
         for (int i = 0; i < NumberOfRobots; i++) {
-            Robot robot = new Robot(this, this.matchingMachine, i);
+            Robot robot = new Robot(this, this.orderManager, i);
             Robots.add(robot);
         }
     }
@@ -73,7 +71,7 @@ public class ClothMatching {
     /*
      * Constructor
      * */
-    private ClothMatching(int numberOfRobots, List<Integer> clothes, List<Integer> num, List<Integer> inventory, List<Integer> orderID) {
+    private ClothOrdering(int numberOfRobots, List<Integer> clothes, List<Integer> num, List<Integer> inventory, List<Integer> orderID) {
         NumberOfRobots = numberOfRobots;
         Cloths = clothes;
         Num = num;
@@ -81,9 +79,6 @@ public class ClothMatching {
 
         // Create Order manager
         orderManager = new OrderManager(inventory, orderID);
-
-        // Create matching machine
-        matchingMachine = new MatchingMachine(orderManager);
 
         // Create robotic arms
         createRobotArms();
@@ -169,11 +164,11 @@ public class ClothMatching {
             num.add(scanner.nextInt());
         }
 
-        // Create a cloth matching machine
-        ClothMatching clothMatching = new ClothMatching(number_of_robots, clothes, num, inventory, orderID);
+        // Create a cloth ordering machine
+        ClothOrdering clothOrdering = new ClothOrdering(number_of_robots, clothes, num, inventory, orderID);
 
-        // Start the Clothmatching
-        clothMatching.startMachine();
+        // Start the Clothordering
+        clothOrdering.startMachine();
     }
 
 

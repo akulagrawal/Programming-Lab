@@ -1,4 +1,4 @@
-package prob1.clothmatching;
+package prob1.clothordering;
 
 /*
  * Contains constants for the sockmatcher
