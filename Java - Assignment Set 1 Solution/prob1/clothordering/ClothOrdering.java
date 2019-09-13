@@ -16,13 +16,15 @@ pass it to a order manager robot. The order manager robot then completes the req
 **/
 public class ClothOrdering {
     private int NumberOfRobots; // Number of robot arms
-    private final List<Integer> Cloths;  // Cloths buffer
+    private final List<Integer> Clothes;  // Clothes buffer
     private final List<Integer> Num;  // Num buffer
     private final List<Integer> OrderID;  // OrderID buffer
     private List<Robot> Robots; // List of Robot Threads
     private OrderManager orderManager;  // Order manager
-    private List<Semaphore> SemLocks;   // Semaphore locks for the clothes
     private Random rand = new Random(); // random generator
+    private Semaphore semClothes;
+    private Semaphore semNum;
+    private Semaphore semOrderID;
 
     /*
      * Start the robots and wait for each robot to terminate.
@@ -47,17 +49,6 @@ public class ClothOrdering {
     }
 
     /*
-     * Create semaphores for each cloth.
-     * */
-    private void createClothLocks() {
-        SemLocks = new ArrayList<>();
-        for (int i = 0; i < Cloths.size(); i++) {
-            Semaphore SemLock = new Semaphore(1);
-            SemLocks.add(SemLock);
-        }
-    }
-
-    /*
      * Create the required number of robot arms
      * */
     private void createRobotArms() {
@@ -73,18 +64,40 @@ public class ClothOrdering {
      * */
     private ClothOrdering(int numberOfRobots, List<Integer> clothes, List<Integer> num, List<Integer> inventory, List<Integer> orderID) {
         NumberOfRobots = numberOfRobots;
-        Cloths = clothes;
+        Clothes = clothes;
         Num = num;
         OrderID = orderID;
+        semClothes = new Semaphore(1);
+        semNum = new Semaphore(1);
+        semOrderID = new Semaphore(1);
 
         // Create Order manager
         orderManager = new OrderManager(inventory, orderID);
 
         // Create robotic arms
         createRobotArms();
+    }
 
-        // Create locks
-        createClothLocks();
+    void semLock() {
+        try {
+            semClothes.acquire();
+            semNum.acquire();
+            semOrderID.acquire();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    void semRelease() {
+        try {
+            semClothes.release();
+            semNum.release();
+            semOrderID.release();
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
     }
 
     /*
@@ -94,48 +107,34 @@ public class ClothOrdering {
     int[] PickCloth() {
         int[] cloth = new int[3];
         int n = -1;
-        boolean flag = false;
 
         // Generate a random number and lock that cloth
-        synchronized (Cloths) {
-            synchronized (Num) {
-                synchronized (OrderID) {
-                    if (Cloths.size() > 0) {
-                        n = rand.nextInt(Cloths.size());
-                    } else {
-                        flag = true;
-                    }
-                }
+        try {
+            semLock();
+            if (Clothes.size() > 0) {
+                n = rand.nextInt(Clothes.size());
+            } else {
+                cloth[0] = Constants.NULL_SOCK;
+                cloth[1] = Constants.NULL_SOCK;
+                cloth[2] = Constants.NULL_SOCK;
+                semRelease();
+                return cloth;
+            }
+            if (n < Clothes.size()) {
+                cloth[0] = Clothes.get(n);
+                cloth[1] = Num.get(n);
+                cloth[2] = OrderID.get(n);
+                Clothes.remove(n);
+                Num.remove(n);
+                OrderID.remove(n);
+                semRelease();
+                return cloth;
             }
         }
-
-        // If no cloth is left to return
-        if (flag) {
-            cloth[0] = Constants.NULL_SOCK;
-            cloth[1] = Constants.NULL_SOCK;
-            cloth[2] = Constants.NULL_SOCK;
-            return cloth;
+        catch (Exception e) {
+            System.out.println(e);
         }
-        boolean success = SemLocks.get(n).tryAcquire();
-
-        // Lock the cloth and return the locked object
-        // Release the lock so that it can be acquired by some other thread
-        synchronized (Cloths) {
-            synchronized (Num) {
-                synchronized (OrderID) {
-                    if (success && (n < Cloths.size())) {
-                        cloth[0] = Cloths.get(n);
-                        cloth[1] = Num.get(n);
-                        cloth[2] = OrderID.get(n);
-                        Cloths.remove(n);
-                        Num.remove(n);
-                        OrderID.remove(n);
-                        SemLocks.get(n).release();
-                        return cloth;
-                    }
-                }
-            }
-        } 
+        semRelease();
         return PickCloth();
     }
 

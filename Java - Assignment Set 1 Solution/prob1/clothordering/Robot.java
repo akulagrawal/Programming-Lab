@@ -28,7 +28,7 @@ class Robot extends Thread {
                 System.out.println("Thread " + getName() + " Stopped!");
                 stop();
             }
-            System.out.println("Cloth of color " + clothReceived[0] + " recieved by Thread - " + getName());
+            System.out.println("Cloth " + clothReceived[0] + " recieved by Thread - " + getName());
             // Pass the picked cloth the order manager
             orderManager.ManageOrder(clothReceived[0], clothReceived[1], clothReceived[2]);
         }
