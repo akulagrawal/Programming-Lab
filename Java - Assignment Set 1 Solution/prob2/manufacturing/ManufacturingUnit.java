@@ -7,22 +7,20 @@ import java.util.concurrent.*;
 
 public class ManufacturingUnit {
     private final int NumberOfRobots; // Number of robot arms
-    private Integer B1Unfin;  // Socks buffer
-    private Integer B2Unfin;
-    private Integer BPackChance;
-    private Integer BSealChance;
-    private Integer B1PackBuf;
-    private Integer B2PackBuf;
-    private Integer Priority;
-    private ArrayBlockingQueue<Integer> SealBuf;
-    private final Integer Time;
-    private long startTime;
+    private Integer B1Unfin;          // Number of B1 bottles in Unfinished Tray
+    private Integer B2Unfin;          // Number of B2 bottles in Unfinished Tray
+    private Integer BPackChance;      // 0/1: Stores if Packaging Unit chooses B1/B2 from Unfinished Tray in next pick
+    private Integer BSealChance;      // 0/1: Stores if sealing Unit chooses B1/B2 from Unfinished Tray in next pick
+    private Integer B1PackBuf;        // Number of B1 bottles in Packaging Tray  
+    private Integer B2PackBuf;        // Number of B2 bottles in Packaging Tray
+    private Integer Priority;         // 0/1: Priority of B1/B2 Packaging trays
+    private ArrayBlockingQueue<Integer> SealBuf; // Buffer of Sealing Tray
+    private final Integer Time;       // Total Time available
+    private long startTime;           // Start time
 
     private List<PackagingRobot> PackagingRobots; // List of Robot Threads
     private List<SealingRobot> SealingRobots; // List of Robot Threads
-    private OrderManager orderManager;  // Shelf manager
-    private List<Semaphore> SemLocks;   // Semaphore locks for the socks
-    private Random rand = new Random(); // random generator
+    private OrderManager orderManager;  // Order managerr
 
     /*
      * Start the robots and wait for each robot to terminate.
@@ -49,18 +47,6 @@ public class ManufacturingUnit {
 
         // Print the collected socks count
         orderManager.PrintInventory();
-    }
-
-
-    /*
-     * Create semaphores for each cloth.
-     * */
-    private void createClothLocks() {
-        SemLocks = new ArrayList<>();
-        for (int i = 0; i < 4; i++) {
-            Semaphore SemLock = new Semaphore(1);
-            SemLocks.add(SemLock);
-        }
     }
 
 
@@ -101,9 +87,6 @@ public class ManufacturingUnit {
 
         // Create robotic arms
         createRobotArms();
-
-        // Create locks
-        createClothLocks();
     }
 
     void addToTray(int state, int n) {
@@ -140,12 +123,7 @@ public class ManufacturingUnit {
             try {
                 synchronized(SealBuf) {
                     if (SealBuf.size() >= Constants.MAX_SEAL_BUF) {  
-                    //try {
                         SealBuf.wait(); //wait for the queue to become empty
-                    //}
-                    //catch (Exception e) {
-                    //    System.out.println(e);
-                    //}
                     }
                     SealBuf.put(n);
                 }
@@ -187,17 +165,16 @@ public class ManufacturingUnit {
         }
     }
 
-
+    /*
+    returns
+    0/1: B1/B2 picked from Unfinished Tray
+    2/3: B1/B2 coming from Sealing Unit to Packaging Unit
+    4/5: B1/B2 coming from Packaging Unit to Sealing Unit
+    */
     int PickBottle(int state) {
         int n = -1;
 
         if (state == Constants.STATE_PACK) {
-            //boolean success1 = SemLocks.get(Constants.LOCK_B1_PACK).tryAcquire();
-            //boolean success2 = SemLocks.get(Constants.LOCK_B2_PACK).tryAcquire();
-            //boolean success3 = SemLocks.get(Constants.LOCK_B1_UNFIN).tryAcquire();
-            //boolean success4 = SemLocks.get(Constants.LOCK_B2_UNFIN).tryAcquire();
-
-            //if(success1 && success2 && success3 && success4) {
             try {
                 synchronized (B1PackBuf) {
                     synchronized (B2PackBuf) {
@@ -261,19 +238,8 @@ public class ManufacturingUnit {
             catch (Exception e) {
                 System.out.println(e);
             }
-
-            
-            //SemLocks.get(0).release();
-            //SemLocks.get(1).release();
-            //SemLocks.get(2).release();
-            //SemLocks.get(3).release();
-            //}
         }
         else {
-            //boolean success1 = SemLocks.get(Constants.LOCK_B1_UNFIN).tryAcquire();
-            //boolean success2 = SemLocks.get(Constants.LOCK_B2_UNFIN).tryAcquire();
-
-            //if(success1 && success2) {
             synchronized (B1Unfin) {
                 synchronized (B2Unfin) {
 
@@ -303,18 +269,12 @@ public class ManufacturingUnit {
 
                 }
             }
-
-            
-            //SemLocks.get(Constants.LOCK_B1_UNFIN).release();
-            //SemLocks.get(Constants.LOCK_B2_UNFIN).release();
-            //}
         }
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         if(((state == 0) && (totalTime > Time - 150)) || ((state == 1) && (totalTime > Time - 250))) {
             n = -1;
         }
-        //System.out.println(totalTime);
         return n;
     }
 
@@ -326,7 +286,7 @@ public class ManufacturingUnit {
         File file = new File(Constants.INPUT_FILE);
         Scanner scanner = new Scanner(file);
 
-        // Take the number of robots as input
+        // Take the input
         int numB1 = scanner.nextInt();
         int numB2 = scanner.nextInt();
         int time = scanner.nextInt();

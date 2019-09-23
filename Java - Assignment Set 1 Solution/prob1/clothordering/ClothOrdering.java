@@ -16,9 +16,9 @@ pass it to a order manager robot. The order manager robot then completes the req
 **/
 public class ClothOrdering {
     private int NumberOfRobots; // Number of robot arms
-    private final List<Integer> Clothes;  // Clothes buffer
-    private final List<Integer> Num;  // Num buffer
-    private final List<Integer> OrderID;  // OrderID buffer
+    private final List<Integer> Clothes;  // Cloth type buffer
+    private final List<Integer> Num;  // Cloth quantity buffer
+    private final List<Integer> OrderID;  // Order ID buffer
     private List<Robot> Robots; // List of Robot Threads
     private OrderManager orderManager;  // Order manager
     private Random rand = new Random(); // random generator
@@ -159,7 +159,17 @@ public class ClothOrdering {
         List<Integer> num = new ArrayList<>();
         while (scanner.hasNextInt()) {
             orderID.add(scanner.nextInt());
-            clothes.add(scanner.nextInt());
+            char ch = scanner.next().charAt(0);
+            if(ch == 'S')
+                clothes.add(1);
+            else if(ch == 'M')
+                clothes.add(2);
+            else if(ch == 'L')
+                clothes.add(3);
+            else if(ch == 'C')
+                clothes.add(4);
+
+            
             num.add(scanner.nextInt());
         }
 

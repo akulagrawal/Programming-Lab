@@ -10,16 +10,6 @@ class OrderManager {
     private Integer Godown[];
     private Integer Packaged[];
     private Integer Sealed[];
-    //private List<Semaphore> SemLocks;   // Semaphore locks for the socks
-
-   /* private void createClothLocks() {
-        SemLocks = new ArrayList<>();
-        for (int i = 0; i < 7; i++) {
-            Semaphore SemLock = new Semaphore(1);
-            SemLocks.add(SemLock);
-        }
-    }
-    */
 
     /*
      * Constructor
@@ -33,14 +23,9 @@ class OrderManager {
             Sealed[i] = 0;
             Godown[i] = 0;
         }
-        //createClothLocks();
     }
 
     void Package(int n, boolean sealed) {
-        //boolean success1 = SemLocks.get(0 + n).tryAcquire();
-        //boolean success2 = SemLocks.get(6).tryAcquire();
-        //boolean success3 = SemLocks.get(4 + n).tryAcquire();
-        //if(success1 && success2 && success3) {
         synchronized (Packaged[n]) {
             synchronized (Godown[n]) {
                 Packaged[n] += 1;
@@ -50,19 +35,9 @@ class OrderManager {
                 // Packaging complete
             }
         }
-            
-        //}
-        //SemLocks.get(0 + n).release();
-        //SemLocks.get(6).release();
-        //SemLocks.get(4 + n).release();
-        //return flag;
     }
 
     void Seal(int n, boolean packaged) {
-        //boolean success1 = SemLocks.get(2 + n).tryAcquire();
-        //boolean success2 = SemLocks.get(6).tryAcquire();
-        //boolean success3 = SemLocks.get(4 + n).tryAcquire();
-        //if(success1 && success2 && success3) {
         synchronized (Sealed[n]) {
             synchronized (Godown[n]) {
                 Sealed[n] += 1;
@@ -72,12 +47,6 @@ class OrderManager {
                 }
             }
         }
-            
-        //}
-        //SemLocks.get(2 + n).release();
-        //SemLocks.get(6).release();
-        //SemLocks.get(4 + n).release();
-        //return flag;
     }
 
     // Print the Inventory finally when the program ends.

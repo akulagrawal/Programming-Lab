@@ -10,11 +10,6 @@ class Constants {
     static final int MAX_B2_PACK = 3;
     static final int MAX_SEAL_BUF = 2;
 
-    static final int LOCK_B1_PACK = 0;
-    static final int LOCK_B2_PACK = 1;
-    static final int LOCK_B1_UNFIN = 2;
-    static final int LOCK_B2_UNFIN = 3;
-
     static final int STATE_PACK = 0;
     static final int STATE_SEAL = 1;
 
