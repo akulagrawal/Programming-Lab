@@ -158,8 +158,14 @@ public class ClothOrdering {
         List<Integer> clothes = new ArrayList<>();
         List<Integer> num = new ArrayList<>();
         while (scanner.hasNextInt()) {
-            orderID.add(scanner.nextInt());
+            int a = scanner.nextInt();
             char ch = scanner.next().charAt(0);
+            int b = scanner.nextInt();
+            if (b < 0) {
+                System.out.println("Error");
+                continue;
+            }
+            orderID.add(a);
             if(ch == 'S')
                 clothes.add(1);
             else if(ch == 'M')
@@ -168,9 +174,7 @@ public class ClothOrdering {
                 clothes.add(3);
             else if(ch == 'C')
                 clothes.add(4);
-
-            
-            num.add(scanner.nextInt());
+            num.add(b);
         }
 
         // Create a cloth ordering machine
